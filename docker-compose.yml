@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  vps-proxy:
+    image: ghcr.io/yessanjin/vps-xray-argo:latest
+    container_name: vps-xray-argo
+    restart: unless-stopped
+    # 端口映射：只暴露订阅端口(3000)和直连端口(8000)
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+    
+    environment:
+      # --- 🔑 核心鉴权 (必改) ---
+      - UUID=9afd1229-b893-40c1-84dd-51e7ce204913   # ⚠️ 修改这里！你的连接密码
+
+      # --- 🔥 安全订阅路径 (必填) ---
+      # 设置后，访问地址变为: http://ip:3000/my-secret-token-123
+      - SUB_PATH=my-secret-token-123
+      
+      # --- 💎 REALITY 配置 (必填 - 见第一步) ---
+      - REALITY_PRIVATE_KEY=xxxxxxxxxxxxxxxxxxxxxx  # ⚠️ 填入刚才生成的 Private Key
+      - REALITY_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxxxxx  # ⚠️ 填入刚才生成的 Public Key
+      - REALITY_DEST=www.apple.com:443              # 伪装的目标网站 (必须支持 TLS1.3)
+      - REALITY_SERVER_NAME=www.apple.com           # 同上
+      - REALITY_SHORT_ID=1a                         # 简短ID，可填 1a, 1b 等，或留空
+      
+      # --- ☁️ Argo 固定隧道配置 (必填 - 见第二步) ---
+      - ARGO_AUTH=eyJhIjoi...                       # ⚠️ 填入 Cloudflare Tunnel Token
+      - ARGO_DOMAIN=vps.example.com                 # ⚠️ 填入你在 CF 后台设置的域名
+      
+      # --- ⚙️ 基础配置 ---
+      - PORT=3000             # 订阅服务端口
+      - XRAY_PORT=8000        # Reality 直连监听端口
+      - NAME=韩国-甲骨文       # 节点名称前缀
+      - CFIP=www.visa.com.sg  # Argo 节点的优选域名 (用于客户端连接)
